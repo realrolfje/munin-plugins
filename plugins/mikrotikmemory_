@@ -22,7 +22,7 @@ totalmemory=$((${totalmemory} * 1024))
 
 if [ "$1" = 'config' ]
 then
-  echo "host_name ${host}"
+#  echo "host_name ${host}"
   echo "graph_args --base 1024 -l 0 --vertical-label Bytes --upper-limit ${totalmemory}"
   echo "graph_title Memory usage"
   echo "graph_category system";

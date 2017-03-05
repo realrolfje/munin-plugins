@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# Faster, leaner, more readable implementation of
+# https://wiki.mikrotik.com/wiki/Munin_Monitoring#mikrotikifrate
+#
+# If you have improved this script, or have more interesting munin plugins, based
+# on this script, please consider sending your changes as a pull request.
+#
+# https://github.com/realrolfje/munin-plugins
+#
+
+# Host is determined based on whatever is behind the _ in the filename
+# So mikrotikcpu_myawesomehost -> hostname = myawesomehost
+myfilename=$0
+host="${myfilename##*_}"
+
+# We assume you didn't change the community in the mikrotik configuration.
+snmpcommunity="public"
+
+# In my mikrotik, the interfaces are:
+#
+# IF-MIB::ifName.1 = STRING: ether1
+# IF-MIB::ifName.3 = STRING: wlan1
+#
+# This plugin only monitors the wlan interface.
+# Room for improvement here. Munin configuration?
+
+interfacename=usedmemory=$(snmpget -v 1 -c ${snmpcommunity} ${host} "IF-MIB::ifName.3" | awk '{ print $NF }')
+
+if [ "$1" = 'config' ]
+then
+#  echo "host_name ${host}"
+  echo "graph_args --base 1000";
+  echo "graph_title ${interfacename} traffic\n";
+  echo "graph_vlabel bits per second"
+  echo "graph_category network"
+  echo "graph_info This graph shows the incoming and outgoing traffic rate of an interface"
+  echo "in.label received"
+  echo "in.type DERIVE"
+  echo "in.draw AREA"
+  echo "in.min 0"
+  echo "in.cdef in,8,*"
+  echo "out.label sent"
+  echo "out.type DERIVE"
+  echo "out.draw LINE1"
+  echo "out.min 0"
+  echo "out.cdef out,8,*"
+  exit 0
+fi
+
+bytesin=$(snmpget -v 1 -c ${snmpcommunity} ${host} "IF-MIB::ifHCInOctets.3" | awk '{ print $NF }')
+bytesout=$(snmpget -v 1 -c ${snmpcommunity} ${host} "IF-MIB::ifHCOutOctets.3" | awk '{ print $NF }')
+
+echo "in.value ${bytesin}"
+echo "out.value ${bytesout}"
