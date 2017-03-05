@@ -17,3 +17,6 @@ versions use bash, awk and snmpget, which all run fast on the pi.
   `192.168.88.1 mymikrotik`
 - Add the network name of the MikroTik to your symlink, like so:
   `ln -s <githubrepo>/plugins/mikrotikcpu_ /etc/munin/plugins/mikrotikcpu_mymikrotik`
+  
+If you'd like to build a mikrotik plugin, start with inspecting the snmp values available.
+You can find these with `snmpwalk -v 1 -c public 192.168.88.1` (for a default mikrotik)

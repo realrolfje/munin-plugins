@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# Faster, leaner, more readable implementation of
+# https://wiki.mikrotik.com/wiki/Munin_Monitoring#mikrotikmemory
+#
+# If you have improved this script, or have more interesting munin plugins, based
+# on this script, please consider sending your changes as a pull request.
+#
+# https://github.com/realrolfje/munin-plugins
+#
+
+# Host is determined based on whatever is behind the _ in the filename
+# So mikrotikcpu_myawesomehost -> hostname = myawesomehost
+myfilename=$0
+host="${myfilename##*_}"
+
+# We assume you didn't change the community in the mikrotik configuration.
+snmpcommunity="public"
+
+totalmemory=$(snmpget -v 1 -c ${snmpcommunity} ${host} "HOST-RESOURCES-MIB::hrStorageSize.65536" | awk '{ print $NF }')
+totalmemory=$((${totalmemory} * 1024))
+
+if [ "$1" = 'config' ]
+then
+  echo "host_name ${host}"
+  echo "graph_args --base 1024 -l 0 --vertical-label Bytes --upper-limit ${totalmemory}"
+  echo "graph_title Memory usage"
+  echo "graph_category system";
+  echo "graph_info This graph shows the router's memory usage."
+  echo "graph_order Total Used"
+  echo "graph_vlabel bytes"
+  echo "Total.label Total Memory"
+  echo "Total.draw AREA"
+  echo "Used.label Used Memory"
+  echo "Used.draw AREA";
+  exit 0
+fi
+
+usedmemory=$(snmpget -v 1 -c ${snmpcommunity} ${host} "HOST-RESOURCES-MIB::hrStorageUsed.65536" | awk '{ print $NF }')
+usedmemory=$((${usedmemory} * 1024))
+
+echo "Total.value ${totalmemory}"
+echo "Used.value ${usedmemory}"
