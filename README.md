@@ -13,6 +13,9 @@ versions use bash, awk and snmpget, which all run fast on the pi.
 
 *To get the MikroTik plugins working:*
 - Install snpget with `sudo apt-get install snmp`
+- Install the MIB downloader with `sudo apt-get install snmp-mibs-downloader`. You need
+  this to make the snmpget tool in the scripts able to translate the human-readable MIB
+  strings into those awful snmp v2 iso OiD strings.
 - Add your MikroTik to the `/etc/hosts` file so you can refer to it with a nice name:
   `192.168.88.1 mymikrotik`
 - Add the network name of the MikroTik to your symlink, like so:
@@ -21,6 +24,3 @@ versions use bash, awk and snmpget, which all run fast on the pi.
 If you'd like to build a mikrotik plugin, start with inspecting the snmp values available.
 You can find these with `snmpwalk -v 1 -c public 192.168.88.1` (for a default mikrotik).
 
-**SNMP Trouble:** The scripts seem to fail on some systems where MIB files are missing to
-translate the SNMP MIB strings to OiDs (snmp talk for: We can't translate cryptic MIB::id
-strings into even more cryptic iso.2.3.1.2.3.5.3.2.1.4.1 notation).
