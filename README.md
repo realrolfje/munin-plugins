@@ -19,4 +19,8 @@ versions use bash, awk and snmpget, which all run fast on the pi.
   `ln -s <githubrepo>/plugins/mikrotikcpu_ /etc/munin/plugins/mikrotikcpu_mymikrotik`
   
 If you'd like to build a mikrotik plugin, start with inspecting the snmp values available.
-You can find these with `snmpwalk -v 1 -c public 192.168.88.1` (for a default mikrotik)
+You can find these with `snmpwalk -v 1 -c public 192.168.88.1` (for a default mikrotik).
+
+**SNMP Trouble:** The scripts seem to fail on some systems where MIB files are missing to
+translate the SNMP MIB strings to OiDs (snmp talk for: We can't translate cryptic MIB::id
+strings into even more cryptic iso.2.3.1.2.3.5.3.2.1.4.1 notation).
