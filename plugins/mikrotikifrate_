@@ -14,6 +14,13 @@
 myfilename=$0
 host="${myfilename##*_}"
 
+# If the host is not online, do not continue.
+ping -c 1 -t 2 ${host} >/dev/null 2>&1
+if [ $? -ne 0 ] ; then #if ping exits nonzero...
+	echo "Can not reach ${host}."
+	exit -1
+fi
+
 # We assume you didn't change the community in the mikrotik configuration.
 snmpcommunity="public"
 
