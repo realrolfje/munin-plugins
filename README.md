@@ -30,3 +30,14 @@ Mattermost
 Mattermost plugins provide more information about your local mattermost installation than
 the provided mattermost statistics page. Stuff you really want to know, like number of
 posts per second, number of users, number of channels.
+
+To make these plugins work, you need the following configuration in the
+`/etc/munin/plugin-conf.d/munin-node` configuration file:
+
+```
+[mattermost*]
+user root
+```
+
+This can probably be changed to the `mattermost` user (or whichever user has access
+to your postgresql database, but that requires rework of the plugins.
