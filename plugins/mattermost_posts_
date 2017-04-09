@@ -12,6 +12,7 @@ if [ "$1" = "config" ]; then
   echo "graph_category mattermost"
   echo "graph_info Number of posts per second"
   echo "graph_period second"
+  echo "graph_total Total"
 
   sudo -u mattermost psql --no-align --quiet <<EOF \
         | grep -v column \
