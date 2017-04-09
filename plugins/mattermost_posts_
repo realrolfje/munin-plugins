@@ -1,0 +1,46 @@
+#!/bin/sh
+# -*- sh -*-
+# 
+# Shows number of posts per team
+# Posts without a team are direct messages.
+# 
+
+if [ "$1" = "config" ]; then
+  echo "graph_title Mattermost posts"
+  echo "graph_args -l 0" 
+  echo "graph_vlabel posts"
+  echo "graph_category network"
+  echo "graph_info Number of posts per second"
+
+  sudo -u mattermost psql --no-align --field-separator=";" --quiet <<EOF \
+        | grep -v column \
+        | grep -v rows \
+        | sed 's/^ //g'
+  select ' none.label '
+  union select ' none.type DERIVE'
+  union select ' none.draw AREA'
+  union select name || '.label ' || name from (select name from teams) as label
+  union select name || '.type DERIVE' from (select name from teams) as derive
+  union select name || '.draw STACK' from (select name from teams) as stack
+  order by 1 desc;
+EOF
+
+  exit 0
+fi
+
+# Measurements:
+sudo -u mattermost psql --no-align --field-separator=";" --quiet <<EOF \
+        | grep -v postcount \
+        | grep -v rows \
+        | sed 's/;/ /g'
+  select
+          case
+                  when (teams.name is not null) then teams.name || '.value'
+                  else 'none.value'
+          end as teamname,
+          count(posts.id) as postcount
+  from posts
+  left join channels on channels.id = posts.channelid
+  left join teams on teams.id = channels.teamid
+  group by teams.name;
+EOF

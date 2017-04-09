@@ -24,3 +24,9 @@ versions use bash, awk and snmpget, which all run fast on the pi.
 If you'd like to build a mikrotik plugin, start with inspecting the snmp values available.
 You can find these with `snmpwalk -v 1 -c public 192.168.88.1` (for a default mikrotik).
 
+
+Mattermost
+----------
+Mattermost plugins provide more information about your local mattermost installation than
+the provided mattermost statistics page. Stuff you really want to know, like number of
+posts per second, number of users, number of channels.
