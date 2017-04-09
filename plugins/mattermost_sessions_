@@ -18,6 +18,7 @@ if [ "$1" = "config" ]; then
   echo "graph_vlabel number of sessions"
   echo "graph_category mattermost"
   echo "graph_info Number of sessions"
+  echo "graph_total Total"
   echo "active.label Recently active"
   echo "active.type GAUGE"
   echo "active.draw AREA"
