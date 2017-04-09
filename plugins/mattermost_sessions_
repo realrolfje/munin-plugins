@@ -1,0 +1,47 @@
+#!/bin/sh
+# -*- sh -*-
+# 
+# Shows number of user sessions in the system.
+# Distinct per user (users can have multiple devices
+# with sessions, these are combined as 1 session)
+#
+# Non-expired sessions are sessions which have an
+# expiry timestamp in the future
+#
+# Active sessions are sessions with activity in the
+# last 15 minutes.
+# 
+
+if [ "$1" = "config" ]; then
+  echo "graph_title Mattermost sessions"
+  echo "graph_args --lower-limit 0 --base 1000" 
+  echo "graph_vlabel number of sessions"
+  echo "graph_category mattermost"
+  echo "graph_info Number of sessions"
+  echo "valid.label Not expired"
+  echo "valid.type GAUGE"
+  echo "valid.draw AREA"
+  echo "active.label Recently active"
+  echo "active.type GAUGE"
+  echo "active.draw STACK"
+EOF
+
+  exit 0
+fi
+
+# Measurements:
+sudo -u mattermost psql --no-align --field-separator=" " --quiet <<EOF \
+        | grep -v label \
+        | grep -v rows 
+  select 'valid.count' as label, 
+		  count(distinct sessions.userid) 
+  from sessions
+  where expiresat > round(extract (epoch from now()) * 1000)
+	and lastactivityat <= round(extract (epoch from now()) * 1000 - 900000)
+  union
+  select 'active.count', 
+		  count(distinct sessions.userid) 
+  from sessions
+  where expiresat > round(extract (epoch from now()) * 1000)
+	and lastactivityat > round(extract (epoch from now()) * 1000 - 900000);
+EOF
