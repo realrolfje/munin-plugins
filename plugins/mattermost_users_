@@ -18,13 +18,13 @@ if [ "$1" = "config" ]; then
   select '1none.label No team'
   union select '2none.type GAUGE'
   union select '3none.draw AREA'
-  union select '4deleted.label No team'
+  union select '4deleted.label Deleted'
   union select '5deleted.type GAUGE'
   union select '6deleted.draw STACK'
   union select '7' || name || '.label ' || name from (select name from teams) as label
   union select '7' || name || '.type GAUGE' from (select name from teams) as derive
   union select '7' || name || '.draw STACK' from (select name from teams) as stack
-  order by 1 desc;
+  order by 1 asc;
 EOF
 
   exit 0
