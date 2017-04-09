@@ -1,0 +1,56 @@
+#!/bin/sh
+# -*- sh -*-
+# 
+# Shows number of users in the system.
+# 
+
+if [ "$1" = "config" ]; then
+  echo "graph_title Mattermost users"
+  echo "graph_args --lower-limit 0 --base 1000" 
+  echo "graph_vlabel number of users"
+  echo "graph_category mattermost"
+  echo "graph_info Number of users"
+
+  sudo -u mattermost psql --no-align --quiet <<EOF \
+        | grep -v column \
+        | grep -v rows \
+        | sed 's/^.//g'
+  select '1none.label No team'
+  union select '2none.type GAUGE'
+  union select '3none.draw AREA'
+  union select '4deleted.label No team'
+  union select '5deleted.type GAUGE'
+  union select '6deleted.draw STACK'
+  union select '7' || name || '.label ' || name from (select name from teams) as label
+  union select '7' || name || '.type GAUGE' from (select name from teams) as derive
+  union select '7' || name || '.draw STACK' from (select name from teams) as stack
+  order by 1 desc;
+EOF
+
+  exit 0
+fi
+
+# Measurements:
+sudo -u mattermost psql --no-align --field-separator=" " --quiet <<EOF \
+        | grep -v teamname \
+        | grep -v rows \
+        | sed 's/^.//'
+  select
+	case
+	  when (teams.name is not null) then '3' || teams.name || '.value'
+	  else '1none.value'
+	end as teamname,
+	count(users.id) as usercount
+  from users
+  left join teammembers on teammembers.userid = users.id
+  left join teams on teammembers.teamid = teams.id
+  where users.deleteat = 0
+  group by teams.name
+  union
+  select
+	'2deleted.value',
+	count(users.id) as usercount
+  from users
+  where users.deleteat > 0
+  order by teamname asc;
+EOF
