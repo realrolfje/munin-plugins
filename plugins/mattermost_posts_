@@ -7,16 +7,17 @@
 
 if [ "$1" = "config" ]; then
   echo "graph_title Mattermost posts"
-  echo "graph_args -l 0" 
-  echo "graph_vlabel posts"
-  echo "graph_category network"
+  echo "graph_args --lower-limit 0 --base 1000" 
+  echo "graph_vlabel posts per second"
+  echo "graph_category mattermost"
   echo "graph_info Number of posts per second"
+  echo "graph_period second"
 
-  sudo -u mattermost psql --no-align --field-separator=";" --quiet <<EOF \
+  sudo -u mattermost psql --no-align --quiet <<EOF \
         | grep -v column \
         | grep -v rows \
         | sed 's/^ //g'
-  select ' none.label '
+  select ' none.label Private'
   union select ' none.type DERIVE'
   union select ' none.draw AREA'
   union select name || '.label ' || name from (select name from teams) as label
@@ -29,10 +30,9 @@ EOF
 fi
 
 # Measurements:
-sudo -u mattermost psql --no-align --field-separator=";" --quiet <<EOF \
+sudo -u mattermost psql --no-align --field-separator=" " --quiet <<EOF \
         | grep -v postcount \
-        | grep -v rows \
-        | sed 's/;/ /g'
+        | grep -v rows 
   select
           case
                   when (teams.name is not null) then teams.name || '.value'
