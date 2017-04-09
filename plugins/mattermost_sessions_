@@ -18,12 +18,12 @@ if [ "$1" = "config" ]; then
   echo "graph_vlabel number of sessions"
   echo "graph_category mattermost"
   echo "graph_info Number of sessions"
-  echo "valid.label Not expired"
-  echo "valid.type GAUGE"
-  echo "valid.draw AREA"
   echo "active.label Recently active"
   echo "active.type GAUGE"
-  echo "active.draw STACK"
+  echo "active.draw AREA"
+  echo "valid.label Not expired"
+  echo "valid.type GAUGE"
+  echo "valid.draw STACK"
 EOF
 
   exit 0
