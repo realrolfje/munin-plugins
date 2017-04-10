@@ -8,9 +8,9 @@
 if [ "$1" = "config" ]; then
   echo "graph_title Mattermost posts"
   echo "graph_args --lower-limit 0 --base 1000" 
-  echo "graph_vlabel posts per second"
+  echo "graph_vlabel posts per minute"
   echo "graph_category mattermost"
-  echo "graph_info Number of posts per second"
+  echo "graph_info Number of posts per minute"
   echo "graph_period minute"
   echo "graph_total Total"
 
@@ -26,6 +26,24 @@ if [ "$1" = "config" ]; then
   union select name || '.draw STACK' from (select name from teams) as stack
   order by 1 desc;
 EOF
+
+  if [ -n ${warning} ]; then
+  sudo -u mattermost psql --no-align --quiet <<EOF \
+        | grep -v alerts \
+        | grep -v rows 
+  select 'none.warning ${warning}' as alerts
+  union select name || '.warning ${warning}'
+EOF
+  fi
+
+  if [ -n ${critical} ]; then
+  sudo -u mattermost psql --no-align --quiet <<EOF \
+        | grep -v alerts \
+        | grep -v rows 
+  select 'none.warning ${critical}' as alerts
+  union select name || '.warning ${critical}'
+EOF
+  fi
 
   exit 0
 fi
