@@ -41,7 +41,7 @@ recentlyactiveperiod=3600000
 sudo -u mattermost psql --no-align --field-separator=" " --quiet <<EOF \
         | grep -v label \
         | grep -v rows 
-   select 'valid.count', 
+   select 'valid.count' as label, 
           count(userid) 
    from 
    (select sessions.userid     as userid,
