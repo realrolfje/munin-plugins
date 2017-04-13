@@ -29,6 +29,14 @@ if [ "$1" = "config" ]; then
   exit 0
 fi
 
+# Selects the session with the most recent activity per user.
+# If a user was active within the last hour, the sessions is
+# counted as "active". If the session is still valid but has
+# no recent activity, the session is counted as "valid".
+
+# One hour in milliseconds.
+recentlyactiveperiod=3600000
+
 # Measurements:
 sudo -u mattermost psql --no-align --field-separator=" " --quiet <<EOF \
         | grep -v label \
@@ -42,7 +50,7 @@ sudo -u mattermost psql --no-align --field-separator=" " --quiet <<EOF \
         where expiresat > round(extract (epoch from now()) * 1000)
         group by sessions.userid
    ) as activesessions
-   where lastactivityat <= round(extract (epoch from now()) * 1000 - 900000)
+   where lastactivityat <= round(extract (epoch from now()) * 1000 - ${recentlyactiveperiod})
    union
    select 'active.count', 
           count(userid) 
@@ -53,5 +61,5 @@ sudo -u mattermost psql --no-align --field-separator=" " --quiet <<EOF \
         where expiresat > round(extract (epoch from now()) * 1000)
         group by sessions.userid
    ) as activesessions
-   where lastactivityat > round(extract (epoch from now()) * 1000 - 900000);
+   where lastactivityat > round(extract (epoch from now()) * 1000 - ${recentlyactiveperiod});
 EOF
