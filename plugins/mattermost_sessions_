@@ -33,15 +33,25 @@ fi
 sudo -u mattermost psql --no-align --field-separator=" " --quiet <<EOF \
         | grep -v label \
         | grep -v rows 
-  select 'valid.value' as label, 
-		  count(distinct sessions.userid) 
-  from sessions
-  where expiresat > round(extract (epoch from now()) * 1000)
-	and lastactivityat <= round(extract (epoch from now()) * 1000 - 900000)
-  union
-  select 'active.value', 
-		  count(distinct sessions.userid) 
-  from sessions
-  where expiresat > round(extract (epoch from now()) * 1000)
-	and lastactivityat > round(extract (epoch from now()) * 1000 - 900000);
+   select 'valid.count', 
+          count(userid) 
+   from 
+   (select sessions.userid     as userid,
+             max(lastactivityat) as lastactivityat
+        from sessions
+        where expiresat > round(extract (epoch from now()) * 1000)
+        group by sessions.userid
+   ) as activesessions
+   where lastactivityat <= round(extract (epoch from now()) * 1000 - 900000)
+   union
+   select 'active.count', 
+          count(userid) 
+   from
+   (select sessions.userid     as userid,
+             max(lastactivityat) as lastactivityat
+        from sessions
+        where expiresat > round(extract (epoch from now()) * 1000)
+        group by sessions.userid
+   ) as activesessions
+   where lastactivityat > round(extract (epoch from now()) * 1000 - 900000);
 EOF
