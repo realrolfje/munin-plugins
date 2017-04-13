@@ -41,7 +41,7 @@ recentlyactiveperiod=3600000
 sudo -u mattermost psql --no-align --field-separator=" " --quiet <<EOF \
         | grep -v label \
         | grep -v rows 
-   select 'valid.count' as label, 
+   select 'valid.value' as label, 
           count(userid) 
    from 
    (select sessions.userid     as userid,
@@ -52,7 +52,7 @@ sudo -u mattermost psql --no-align --field-separator=" " --quiet <<EOF \
    ) as activesessions
    where lastactivityat <= round(extract (epoch from now()) * 1000 - ${recentlyactiveperiod})
    union
-   select 'active.count', 
+   select 'active.value', 
           count(userid) 
    from
    (select sessions.userid     as userid,
