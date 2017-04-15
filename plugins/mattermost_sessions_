@@ -41,25 +41,24 @@ recentlyactiveperiod=3600000
 sudo -u mattermost psql --no-align --field-separator=" " --quiet <<EOF \
         | grep -v label \
         | grep -v rows 
-   select 'valid.value' as label, 
-          count(userid) 
-   from 
-   (select sessions.userid     as userid,
-             max(lastactivityat) as lastactivityat
-        from sessions
-        where expiresat > round(extract (epoch from now()) * 1000)
-        group by sessions.userid
-   ) as activesessions
-   where lastactivityat <= round(extract (epoch from now()) * 1000 - ${recentlyactiveperiod})
-   union
-   select 'active.value', 
-          count(userid) 
-   from
-   (select sessions.userid     as userid,
-             max(lastactivityat) as lastactivityat
-        from sessions
-        where expiresat > round(extract (epoch from now()) * 1000)
-        group by sessions.userid
-   ) as activesessions
-   where lastactivityat > round(extract (epoch from now()) * 1000 - ${recentlyactiveperiod});
+  select label, count(userid) -1 as "value"
+  from (
+	-- The dummy values make sure at least one of each value is present.
+	select 'dummy' as userid , 'active.value' as label
+	union
+	select 'dummy' as userid,  'valid.value' as label
+	union
+	select userid,
+		   case when lastactivityat <= round(extract (epoch from now()) * 1000 - ${recentlyactiveperiod})
+				then 'active.value'
+				else 'valid.value'
+		   end as label
+	from (
+	  select sessions.userid     as userid,
+		  max(lastactivityat) as lastactivityat
+	  from sessions
+	  where expiresat > round(extract (epoch from now()) * 1000)
+	  group by sessions.userid ) as activity
+	  ) as values
+   group by values.label;
 EOF
