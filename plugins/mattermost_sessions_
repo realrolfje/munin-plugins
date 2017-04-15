@@ -19,13 +19,23 @@ if [ "$1" = "config" ]; then
   echo "graph_category mattermost"
   echo "graph_info Number of sessions"
   echo "graph_total Total"
-  echo "active.label Recently active"
-  echo "active.type GAUGE"
-  echo "active.draw AREA"
+
+  echo "active_hour.label Active last hour"
+  echo "active_hour.type GAUGE"
+  echo "active_hour.draw AREA"
+
+  echo "active_day.label Active last day"
+  echo "active_day.type GAUGE"
+  echo "active_day.draw STACK"
+
+  echo "active_day.label Active last week"
+  echo "active_day.type GAUGE"
+  echo "active_day.draw STACK"
+
   echo "valid.label Not expired"
   echo "valid.type GAUGE"
   echo "valid.draw STACK"
-
+ 
   exit 0
 fi
 
@@ -34,8 +44,11 @@ fi
 # counted as "active". If the session is still valid but has
 # no recent activity, the session is counted as "valid".
 
-# One hour in milliseconds.
-recentlyactiveperiod=3600000
+# Periods in seconds
+hour=3600
+day=86400
+week=604800
+recentlyactiveperiod=604800000
 
 # Measurements:
 sudo -u mattermost psql --no-align --field-separator=" " --quiet <<EOF \
@@ -44,14 +57,16 @@ sudo -u mattermost psql --no-align --field-separator=" " --quiet <<EOF \
   select label, count(userid) -1 as "value"
   from (
 	-- The dummy values make sure at least one of each value is present.
-	select 'dummy' as userid , 'active.value' as label
-	union
-	select 'dummy' as userid,  'valid.value' as label
+	      select 'dummy' as userid , 'active_hour.value' as label
+	union select 'dummy' as userid , 'active_day.value' as label
+	union select 'dummy' as userid , 'active_week.value' as label
+	union select 'dummy' as userid,  'valid.value' as label
 	union
 	select userid,
-		   case when lastactivityat <= round(extract (epoch from now()) * 1000 - ${recentlyactiveperiod})
-				then 'active.value'
-				else 'valid.value'
+		   case when lastactivityat > round(extract (epoch from now()) * 1000 - ${hour} * 1000) then 'active_hour.value'
+		        when lastactivityat > round(extract (epoch from now()) * 1000 - ${day}  * 1000) then 'active_day.value'
+		        when lastactivityat > round(extract (epoch from now()) * 1000 - ${week} * 1000) then 'active_week.value'
+		   else 'valid.value'
 		   end as label
 	from (
 	  select sessions.userid     as userid,
