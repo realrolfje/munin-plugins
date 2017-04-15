@@ -28,9 +28,9 @@ if [ "$1" = "config" ]; then
   echo "active_day.type GAUGE"
   echo "active_day.draw STACK"
 
-  echo "active_day.label Active last week"
-  echo "active_day.type GAUGE"
-  echo "active_day.draw STACK"
+  echo "active_week.label Active last week"
+  echo "active_week.type GAUGE"
+  echo "active_week.draw STACK"
 
   echo "valid.label Not expired"
   echo "valid.type GAUGE"
