@@ -14,6 +14,10 @@
 myfilename=$0
 host="${myfilename##*_}"
 
+# Find this number with
+# snmpwalk -Os -v 2c -c public hamnetsxt | grep ifName
+ifnumber="4"
+
 # If the host is not online, do not continue.
 ping -c 1 -t 2 ${host} >/dev/null 2>&1
 if [ $? -ne 0 ] ; then #if ping exits nonzero...
@@ -32,7 +36,7 @@ snmpcommunity="public"
 # This plugin only monitors the wlan interface.
 # Room for improvement here. Munin configuration?
 
-interfacename=usedmemory=$(snmpget -v 1 -c ${snmpcommunity} ${host} "IF-MIB::ifName.3" | awk '{ print $NF }')
+interfacename=usedmemory=$(snmpget -v 1 -c ${snmpcommunity} ${host} "IF-MIB::ifName.${ifnumber}" | awk '{ print $NF }')
 
 if [ "$1" = 'config' ]
 then
@@ -55,8 +59,8 @@ then
   exit 0
 fi
 
-bytesin=$(snmpget -v 1 -c ${snmpcommunity} ${host} "IF-MIB::ifHCInOctets.3" | awk '{ print $NF }')
-bytesout=$(snmpget -v 1 -c ${snmpcommunity} ${host} "IF-MIB::ifHCOutOctets.3" | awk '{ print $NF }')
+bytesin=$(snmpget -v 1 -c ${snmpcommunity} ${host} "IF-MIB::ifHCInOctets.${ifnumber}" | awk '{ print $NF }')
+bytesout=$(snmpget -v 1 -c ${snmpcommunity} ${host} "IF-MIB::ifHCOutOctets.${ifnumber}" | awk '{ print $NF }')
 
 echo "in.value ${bytesin}"
 echo "out.value ${bytesout}"

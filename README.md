@@ -22,8 +22,41 @@ versions use bash, awk and snmpget, which all run fast on the pi.
   `ln -s <githubrepo>/plugins/mikrotikcpu_ /etc/munin/plugins/mikrotikcpu_mymikrotik`
   
 If you'd like to build a mikrotik plugin, start with inspecting the snmp values available.
-You can find these with `snmpwalk -v 1 -c public 192.168.88.1` (for a default mikrotik).
+You can find these with `snmpwalk -v 2c -Os -c public 192.168.88.1` (for a default mikrotik). Your output should look somewhat like this:
 
+```
+sysDescr.0 = STRING: RouterOS RB SXT 5nD r2
+sysObjectID.0 = OID: enterprises.14988.1
+sysUpTimeInstance = Timeticks: (95109500) 11 days, 0:11:35.00
+sysContact.0 = STRING: 
+sysName.0 = STRING: MyRouterBoard
+sysLocation.0 = STRING: 
+sysServices.0 = INTEGER: 78
+ifNumber.0 = INTEGER: 2
+ifIndex.1 = INTEGER: 1
+ifIndex.4 = INTEGER: 4
+ifDescr.1 = STRING: ether1
+ifDescr.4 = STRING: wlan2
+ifType.1 = INTEGER: ethernetCsmacd(6)
+```
+
+If you see lines in your output starting with `iso.1.5.3.5.7.4.3.2.4.5`, you may be missing MIB files, and/or loading of MIBs is disabled. To have snmpwalk output lines with MIBs instead of IODs, do this:
+
+```
+cd /usr/share/snmp/mibs 
+sudo wget http://download2.mikrotik.com/Mikrotik.mib
+cd /etc/snmp
+nano snmp.conf
+```
+
+Comment out the line with `mibs :`, like so:
+
+```
+# As the snmp packages come without MIB files due to license reasons, loading
+# of MIBs is disabled by default. If you added the MIBs you can reenable
+# loading them by commenting out the following line.
+# mibs :
+```
 
 Mattermost
 ----------
