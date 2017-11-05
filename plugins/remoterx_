@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 #
 # Reads the last Squelch state and value from the
 # logfile of a remotetrx.
@@ -6,62 +6,75 @@
 # See http://www.svxlink.org/doc/man/man1/remotetrx.1.html
 #
 import sys
-import os
 
 logfile = '/dev/shm/remotetrx'
 
-def tail( f, lines=50 ):
-    total_lines_wanted = lines
 
-    BLOCK_SIZE = 1024
-    f.seek(0, 2)
-    block_end_byte = f.tell()
-    lines_to_go = total_lines_wanted
-    block_number = -1
-    blocks = [] # blocks of size BLOCK_SIZE, in reverse order starting
-                # from the end of the file
-    while lines_to_go > 0 and block_end_byte > 0:
-        if (block_end_byte - BLOCK_SIZE > 0):
-            # read the last block we haven't yet read
-            f.seek(block_number*BLOCK_SIZE, 2)
-            blocks.append(f.read(BLOCK_SIZE))
-        else:
-            # file too small, start from begining
-            f.seek(0,0)
-            # only read what was not read
-            blocks.append(f.read(block_end_byte))
-        lines_found = blocks[-1].count('\n')
-        lines_to_go -= lines_found
-        block_end_byte -= BLOCK_SIZE
-        block_number -= 1
-    all_read_text = ''.join(reversed(blocks))
-    return '\n'.join(all_read_text.splitlines()[-total_lines_wanted:])
+def readline_backwards(file_object, position):
+    """
+    Read a line backwards from `pos`, until a newline is found
 
-if len(sys.argv) > 1 and (str(sys.argv[1])) == 'config':
-    print 'graph_title SVXLink Remote RX'
-    print 'graph_args --lower-limit 0 --base 1000'
-    print 'graph_vlabel Level'
-    print 'graph_category sensors'
-    print 'graph_info Squelch state and level at trigger time'
-    print 'graph_period minute'
-    print 'state.label Squelch OPEN'
-    print 'state.type GAUGE'
-    print 'state.draw AREA'
-    print 'state.colour COLOUR16'
-    print 'level.label Squelch level'
-    print 'level.type GAUGE'
-    print 'level.draw LINE' 
-    print 'level.colour COLOUR7'
+    :arg file_object: an open file
+    :arg position: the current position of the file
+    :returns generator of line(str) and new file position(int)
+    """
+    data = ""
+    file_object.seek(position)
 
-f = open(logfile, 'r')
-lines = tail(f)
-sqlindex = lines.rfind('The squelch is ')
-if sqlindex > 0:
-    bracketopen = lines.find(' (',sqlindex)
-    bracketclose = lines.find(')',bracketopen)
-    if lines[sqlindex+15:bracketopen] == 'OPEN':
-        print 'state.value 1'
+    while position > 0:
+        file_object.seek(position - 1)
+        position = file_object.tell()
+        char = file_object.read(1)
+        if char == '\n':
+            yield data[::-1], position  # note that we do not include the newline
+        data += char
+
+
+def trace_back(file_name, text):
+    """
+    Read a file backwards until we found `text`, then return the line that contains it
+
+    :param file_name: the file name to read
+    :param text: the text to match
+    :return: the line that contains the text (str)
+    """
+    with open(file_name) as file_object:
+        file_object.seek(0, 2)  # seek to the end
+        position = file_object.tell()
+        for line, position in readline_backwards(file_object, position):
+            if text in line:
+                return line
+
+
+def main():
+    if 'config' in sys.argv:
+        print 'graph_title SVXLink Remote RX'
+        print 'graph_args --lower-limit 0 --base 1000'
+        print 'graph_vlabel Level'
+        print 'graph_category sensors'
+        print 'graph_info Squelch state and level at trigger time'
+        print 'graph_period minute'
+        print 'state.label Squelch OPEN'
+        print 'state.type GAUGE'
+        print 'state.draw AREA'
+        print 'state.colour COLOUR16'
+        print 'level.label Squelch level'
+        print 'level.type GAUGE'
+        print 'level.draw LINE'
+        print 'level.colour COLOUR7'
+
+    line = trace_back(logfile, 'The squelch is ')
+    if not line:
+        exit(0)
+
+    if "OPEN" in line:
+        state = 1
     else:
-        print 'state.value 0'
+        state = 0
+    print "state.value {}".format(state)
 
-    print 'level.value ' + lines[bracketopen+2:bracketclose]
+    level = line.split("(")[1].split(")")[0]  # alternative is regexp, but this is more flexible
+    print "level.value {}".format(level)
+
+if __name__ == "__main__":
+    main()
