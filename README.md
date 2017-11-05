@@ -12,7 +12,7 @@ wiki use perl, which makes them too slow and resource hungry for the raspberry p
 versions use bash, awk and snmpget, which all run fast on the pi.
 
 *To get the MikroTik plugins working:*
-- Install snpget with `sudo apt-get install snmp`
+- Install snmpget with `sudo apt-get install snmp`
 - Install the MIB downloader with `sudo apt-get install snmp-mibs-downloader`. You need
   this to make the snmpget tool in the scripts able to translate the human-readable MIB
   strings into those awful snmp v2 iso OiD strings.
