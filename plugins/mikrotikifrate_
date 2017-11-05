@@ -36,7 +36,7 @@ snmpcommunity="public"
 # This plugin only monitors the wlan interface.
 # Room for improvement here. Munin configuration?
 
-interfacename=usedmemory=$(snmpget -v 1 -c ${snmpcommunity} ${host} "IF-MIB::ifName.${ifnumber}" | awk '{ print $NF }')
+interfacename=$(snmpget -v 1 -c ${snmpcommunity} ${host} "IF-MIB::ifName.${ifnumber}" | awk '{ print $NF }')
 
 if [ "$1" = 'config' ]
 then
