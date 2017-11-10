@@ -11,7 +11,11 @@
 #
 # See https://learn.adafruit.com/adafruits-raspberry-pi-lesson-11-ds18b20-temperature-sensing/ds18b20
 #
+# To configure label names for your sensors, edit /etc/munin/plugins.d/munin-node:
+# [wiretemp]
+# env.28_0414608a03ff Room Temperature
 #
+
 import sys
 import os
 from os import listdir
