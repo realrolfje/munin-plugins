@@ -14,12 +14,23 @@
 #
 import sys
 import os
+from os import listdir
+from os.path import isfile
 
-device1 = '28-0414608a03ff' # binnen
-label1 = 'kast temperatuur'
+w1dir = '/sys/bus/w1/devices'
 
-device2 = '28-041460b254ff' # buiten
-label2 = 'buiten temperatuur'
+# Fetch all temperature sensors and labels
+sensors = {}
+labels = {}
+for f in listdir(w1dir):
+    sensor = f.replace('-','_')
+    if sensor in os.environ:
+        labels[sensor] = os.environ[sensor]
+    else:
+        labels[sensor] = sensor
+    f = w1dir + '/' + f + '/w1_slave'
+    if isfile(f):
+        sensors[sensor] = f
 
 def read_temp_raw(device_file):
     f = open(device_file, 'r')
@@ -27,8 +38,7 @@ def read_temp_raw(device_file):
     f.close()
     return lines
  
-def read_temp(device):
-    device_file = '/sys/bus/w1/devices/'+device+'/w1_slave'
+def read_temp(device_file):
     lines = read_temp_raw(device_file)
     while lines[0].strip()[-3:] != 'YES':
         time.sleep(0.2)
@@ -46,12 +56,11 @@ if len(sys.argv) > 1 and (str(sys.argv[1])) == 'config':
     print 'graph_category sensors'
     print 'graph_info Temperature in degrees celcius'
     print 'graph_period minute'
-    print device1 + '.label ' + label1
-    print device1 + '.type GAUGE'
-    print device1 + '.draw LINE' 
-    print device2 + '.label ' + label2
-    print device2 + '.type GAUGE'
-    print device2 + '.draw LINE' 
 
-print device1 + '.value ' + str(read_temp(device1))
-print device2 + '.value ' + str(read_temp(device2))
+    for key, value in sensors.iteritems():
+        print key + '.label ' + (labels[key] if labels[key] else key)        
+        print key + '.type GAUGE'
+        print key + '.draw LINE' 
+
+for key, value in sensors.iteritems():
+    print key + '.value ' + str(read_temp(value))
