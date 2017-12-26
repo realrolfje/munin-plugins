@@ -58,6 +58,8 @@ Comment out the line with `mibs :`, like so:
 # mibs :
 ```
 
+snmpwalk should now behave a bit better.
+
 Mattermost
 ----------
 Mattermost plugins provide more information about your local mattermost installation than
