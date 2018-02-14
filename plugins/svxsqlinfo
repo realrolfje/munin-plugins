@@ -18,7 +18,7 @@ import collections
 
 # Hints:
 # infourl='http://pi6nos.ampr.org/repeater-info.json'
-# jsonurl='http://pi6nos.ampr.org:1535/json'
+# levelsurl='http://pi6nos.ampr.org:1535/json'
 # title='PI6NOS Rx levels'
 
 title=os.environ['graphtitle']
@@ -41,7 +41,10 @@ def getrxlevels():
             if ('rx' in data and isinstance(data['rx'],dict)):
                 levels={}
                 for key, value in data['rx'].items():
-                    levels[key] = value['lvl']
+                    level = value['lvl']
+                    if (level < 0):
+                        level = 0
+                    levels[key] = level
                 return levels
 
 def main():
