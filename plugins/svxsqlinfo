@@ -5,12 +5,11 @@
 #
 # Configure as follows:
 # [svxsqlinfo]
-# graph-title PI6NOS Rx levels
-# info-url http://pi6nos.ampr.org/repeater-info.json
-# levels-url http://pi6nos.ampr.org:1535/json
+# env.graphtitle PI6NOS Rx levels
+# env.infourl http://pi6nos.ampr.org/repeater-info.json
+# env.levelsurl http://pi6nos.ampr.org:1535/json
 #
-#
-#
+
 import os
 import sys
 import urllib
@@ -22,9 +21,9 @@ import collections
 # jsonurl='http://pi6nos.ampr.org:1535/json'
 # title='PI6NOS Rx levels'
 
-title=os.environ['graph-title']
-infourl=os.environ['info-url']
-levelsurl=os.environ['levels-url']
+title=os.environ['graphtitle']
+infourl=os.environ['infourl']
+levelsurl=os.environ['levelsurl']
 
 def getrxnames():
     filehandle = urllib.urlopen(url=infourl)
