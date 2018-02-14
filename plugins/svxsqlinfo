@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+#
+# Fetches SNR level information for all connected receivers
+# of an SVX Link repeater system which provides a repeater-info.json
+#
+#
+
+import sys
+import urllib
+import json
+import collections
+
+infourl='http://pi6nos.ampr.org/repeater-info.json'
+jsonurl='http://pi6nos.ampr.org:1535/json'
+
+def getrxnames():
+    filehandle = urllib.urlopen(url=infourl)
+    info = json.loads(filehandle.read())
+    names={}
+    for key, value in info['rx'].items():
+        names[key] = value['name'].replace(" ","-")
+    return collections.OrderedDict(sorted(names.items()))
+
+def getrxlevels():
+    filehandle = urllib.urlopen(url=jsonurl)
+    for line in filehandle:
+        if (line[0:6] == 'data: '):
+            data = json.loads(line[6:])
+            if ('rx' in data and isinstance(data['rx'],dict)):
+                levels={}
+                for key, value in data['rx'].items():
+                    levels[key] = value['lvl']
+                return levels
+
+def main():
+    names = getrxnames()
+
+    if 'config' in sys.argv:
+        print 'graph_title PI6NOX Rx Levels'
+        print 'graph_args --lower-limit 0 --base 1000'
+        print 'graph_vlabel Level'
+        print 'graph_category sensors'
+        print 'graph_info SNR levels of PI6NOS receivers.'
+        print 'graph_period minute'
+
+        for key,value in names.items():
+            print '{}.label {}'.format(key, value)
+            print '{}.type GAUGE'.format(key)
+            print '{}.draw AREA'.format(key)
+
+    levels = getrxlevels()
+    for key,value in levels.items():
+        print '{}.value {}'.format(key, value)
+
+if __name__ == "__main__":
+    main()
