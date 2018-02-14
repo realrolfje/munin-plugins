@@ -3,15 +3,28 @@
 # Fetches SNR level information for all connected receivers
 # of an SVX Link repeater system which provides a repeater-info.json
 #
+# Configure as follows:
+# [svxsqlinfo]
+# graph-title PI6NOS Rx levels
+# info-url http://pi6nos.ampr.org/repeater-info.json
+# levels-url http://pi6nos.ampr.org:1535/json
 #
-
+#
+#
+import os
 import sys
 import urllib
 import json
 import collections
 
-infourl='http://pi6nos.ampr.org/repeater-info.json'
-jsonurl='http://pi6nos.ampr.org:1535/json'
+# Hints:
+# infourl='http://pi6nos.ampr.org/repeater-info.json'
+# jsonurl='http://pi6nos.ampr.org:1535/json'
+# title='PI6NOS Rx levels'
+
+title=os.environ['graph-title']
+infourl=os.environ['info-url']
+levelsurl=os.environ['levels-url']
 
 def getrxnames():
     filehandle = urllib.urlopen(url=infourl)
@@ -22,7 +35,7 @@ def getrxnames():
     return collections.OrderedDict(sorted(names.items()))
 
 def getrxlevels():
-    filehandle = urllib.urlopen(url=jsonurl)
+    filehandle = urllib.urlopen(url=levelsurl)
     for line in filehandle:
         if (line[0:6] == 'data: '):
             data = json.loads(line[6:])
@@ -36,7 +49,7 @@ def main():
     names = getrxnames()
 
     if 'config' in sys.argv:
-        print 'graph_title PI6NOX Rx Levels'
+        print 'graph_title PI6NOS Rx Levels'
         print 'graph_args --lower-limit 0 --base 1000'
         print 'graph_vlabel Level'
         print 'graph_category sensors'
