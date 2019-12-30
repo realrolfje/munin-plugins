@@ -5,7 +5,7 @@
 import time
 import serial
 
-def readserial:
+def readserial():
     ser = serial.Serial(
         port='/dev/ttyAMA0',
         baudrate = 115200,
