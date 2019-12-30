@@ -34,7 +34,7 @@ def main():
         print "graph_vlabel wH"
         print "graph_scale  no"
         print "graph_total  Total"
-        print "graph_category energy"
+        print "graph_category sensors"
         print "graph_period minute"
         print "t1.label Laag tarief"
         print "t1.type DERIVE"
