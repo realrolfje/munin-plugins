@@ -2,6 +2,7 @@
 #
 # Reads meter readings from AM550 Smart Energy meter at ttyAMA0
 #
+import sys
 import time
 import serial
 
