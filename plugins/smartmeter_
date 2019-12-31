@@ -46,8 +46,8 @@ def main():
         print "t2.min 0"
 
     readings = readserial()
-    print "t1.value", round(readings["T1"])
-    print "t2.value", round(readings["T2"])
+    print "t1.value", int(round(readings["T1"]))
+    print "t2.value", int(round(readings["T2"]))
 
 if __name__ == "__main__":
     main()
