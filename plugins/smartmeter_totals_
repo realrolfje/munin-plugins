@@ -29,13 +29,13 @@ def readserial():
 
 def main():
     if 'config' in sys.argv:
-        print "graph_title Elektra verbruik in watt-uur"
+        print "graph_title Elektra obv meterstand, in Watt-uur per uur"
         print "graph_args --base 1000 -l 0"
         print "graph_vlabel wH"
         print "graph_scale  no"
         print "graph_total  Total"
         print "graph_category sensors"
-        print "graph_period minute"
+        print "graph_period hour"
         print "t1.label Laag tarief"
         print "t1.type DERIVE"
         print "t1.draw STACK"

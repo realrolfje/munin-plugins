@@ -34,7 +34,6 @@ def main():
         print "graph_vlabel Wh"
         print "graph_scale  no"
         print "graph_category sensors"
-        print "graph_period minute"
         print "c.label Huidig verbruik"
         print "c.type GAUGE"
         print "c.draw LINE"
