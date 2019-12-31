@@ -1,0 +1,53 @@
+#!/usr/bin/python2.7
+#
+# Reads meter readings from AM550 Smart Energy meter at ttyAMA0
+#
+import sys
+import time
+import serial
+
+def readserial():
+    ser = serial.Serial(
+        port='/dev/ttyAMA0',
+        baudrate = 115200,
+        parity=serial.PARITY_NONE,
+        stopbits=serial.STOPBITS_ONE,
+        bytesize=serial.EIGHTBITS,
+        timeout=1
+    )
+
+    readings={}
+    while len(readings) < 3:
+        x = ser.readline()
+        if x[0:7] == "1-0:1.7":
+            readings["huidig"] = float(x[10:16])*1000
+        if x[0:9] == "1-0:1.8.1":
+            readings["T1"] = float(x[10:19])*1000
+        if x[0:9] == "1-0:1.8.2":
+            readings["T2"] = float(x[10:19])*1000
+    return readings
+
+def main():
+    if 'config' in sys.argv:
+        print "graph_title Elektra verbruik in watt-uur"
+        print "graph_args --base 1000 -l 0"
+        print "graph_vlabel wH"
+        print "graph_scale  no"
+        print "graph_total  Total"
+        print "graph_category sensors"
+        print "graph_period minute"
+        print "t1.label Laag tarief"
+        print "t1.type DERIVE"
+        print "t1.draw STACK"
+        print "t1.min 0"
+        print "t2.label Hoog tarief"
+        print "t2.type DERIVE"
+        print "t2.draw STACK"
+        print "t2.min 0"
+
+    readings = readserial()
+    print "t1.value", int(round(readings["T1"]))
+    print "t2.value", int(round(readings["T2"]))
+
+if __name__ == "__main__":
+    main()
