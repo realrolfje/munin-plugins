@@ -38,7 +38,7 @@ def main():
         print "graph_period hour"
         print "t1.label Laag tarief"
         print "t1.type DERIVE"
-        print "t1.draw STACK"
+        print "t1.draw AREA"
         print "t1.min 0"
         print "t2.label Hoog tarief"
         print "t2.type DERIVE"
