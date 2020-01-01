@@ -1,6 +1,7 @@
 #!/usr/bin/python2.7
 #
-# Reads meter readings from AM550 Smart Energy meter at ttyAMA0
+# Derives Wattage from Watt-hour meter readings from
+# the AM550 Smart Energy meter.
 #
 import sys
 import time

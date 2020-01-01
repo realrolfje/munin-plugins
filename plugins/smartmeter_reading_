@@ -1,6 +1,6 @@
 #!/usr/bin/python2.7
 #
-# Reads current electricity usage, in Watts,
+# Reads meter readings, in Watt-hour total,
 # from AM550 Smart Energy meter at ttyAMA0
 #
 import sys
@@ -30,18 +30,25 @@ def readserial():
 
 def main():
     if 'config' in sys.argv:
-        print "graph_title Huidig elektra verbruik in Watt"
+        print "graph_title Meterstand, in Watt-uur"
         print "graph_args --base 1000 -l 0"
         print "graph_vlabel Watt"
-        print "graph_scale  no"
+        print "graph_scale no"
+        print "graph_total Total"
         print "graph_category sensors"
-        print "c.label Huidig verbruik"
-        print "c.type GAUGE"
-        print "c.draw LINE"
-        print "c.min 0"
+        print "graph_period hour"
+        print "t1.label Laag tarief"
+        print "t1.type GAUGE"
+        print "t1.draw AREA"
+        print "t1.min 0"
+        print "t2.label Hoog tarief"
+        print "t2.type GAUGE"
+        print "t2.draw STACK"
+        print "t2.min 0"
 
     readings = readserial()
-    print "c.value", int(round(readings["huidig"]))
+    print "t1.value", int(round(readings["T1"]))
+    print "t2.value", int(round(readings["T2"]))
 
 if __name__ == "__main__":
     main()
