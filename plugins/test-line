@@ -1,0 +1,61 @@
+#!/usr/bin/python2.7
+#
+# Reads the last Squelch state and value from the
+# logfile of a remotetrx.
+#
+# See http://www.svxlink.org/doc/man/man1/remotetrx.1.html
+#
+import sys
+from dateutil import parser
+from datetime import datetime, timedelta
+
+def parseline(line):
+    """
+    Parses a remotetrx line into date, state and level.
+
+    :param line: logline
+    :return: dictionary object with date, squelch state, squelch level
+    """
+
+    try:
+        dict = {}
+        dict['date'] = parser.parse(line[:line.index(": ")])
+        dict['level'] = line.split("(")[1].split(")")[0]  # alternative is regexp, but this is more flexible
+        dict['sql'] = line.split("The squelch is ")[1].split(" (")[0]
+        return dict
+    except:
+        pass
+
+    return {}
+
+
+
+
+def main():
+    x = []
+    x.append(parseline("Sun Jan 28 18:49:55 2018: DdrRx_6NOS: The squelch is OPEN (53.5189)"))
+    x.append(parseline("Sun Jan 28 18:49:55 2018: DdrRx_6NOS: The squelch is CLOSED (87.5162)"))
+    x.append(parseline("Sun Jan 28 18:53:06 2018: DdrRx_6NOS: The squelch is OPEN (15.1477)"))
+    x.append(parseline("Sun Jan 28 18:53:06 2018: DdrRx_6NOS: The squelch is CLOSED (9.33016)"))
+
+    print x
+
+    # print datetime.now() - timedelta(minutes=5)
+    # print datetime.now()
+
+    timeopen = timedelta(0)
+    timeclosed = timedelta(0)
+
+    for i in range(len(x)-1):
+        delta = (x[i+1]['date'] - x[i]['date']) +timedelta(seconds=1)
+        if (x[i]['sql'] == 'CLOSED'):
+            timeclosed += delta
+        else:
+            timeopen += delta
+
+    print timeopen
+    print timeclosed
+    print round(100*(timeopen.total_seconds() / timeclosed.total_seconds()),2)
+
+if __name__ == "__main__":
+    main()

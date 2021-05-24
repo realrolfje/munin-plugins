@@ -6,8 +6,11 @@
 # See http://www.svxlink.org/doc/man/man1/remotetrx.1.html
 #
 import sys
+from dateutil import parser
+from datetime import datetime, timedelta
 
 logfile = '/dev/shm/remotetrx'
+logfile = '/Users/rolf/GitHub/munin-plugins/plugins/test.txt'
 
 
 def readline_backwards(file_object, position):
@@ -45,6 +48,66 @@ def trace_back(file_name, text):
             if text in line:
                 return line
 
+def parseline(line):
+    """
+    Parses a remotetrx line into date, state and level.
+
+    :param line: logline
+    :return: dictionary object with date, squelch state, squelch level
+    """
+
+    try:
+        dict = {}
+        dict['date'] = parser.parse(line[:line.index(": ")])
+        dict['level'] = line.split("(")[1].split(")")[0]  # alternative is regexp, but this is more flexible
+        dict['sql'] = line.split("The squelch is ")[1].split(" (")[0]
+        return dict
+    except:
+        pass
+
+    return {}
+
+def squelch_open(file_name, seconds):
+    """
+    Read a file backwards until we are 'seconds' back in time.
+    Returns the percentage of squelch open vs squelch closed.
+
+    :param file_name: the file name to read
+    :param seconds: The total number of seconds to accumulate (of available).
+    :return: The percentage of time the squelch was open.
+    """
+
+
+    with open(file_name) as file_object:
+        file_object.seek(0, 2)  # seek to the end
+        position = file_object.tell()
+
+        for lines, position in readline_backwards(file_object, position):
+
+            lastline = {}
+            timeopen = 0
+            timeclosed = 0
+            for line in lines.splitlines():
+                thisline = parseline(line)
+                if (thisline and lastline):
+                    deltaseconds = (lastline['date'] - thisline['date']).total_seconds()
+                    if (thisline['sql'] == 'OPEN'):
+                        timeopen += deltaseconds + 1
+                    else:
+                        timeclosed += deltaseconds + 1
+
+                if (thisline and thisline['date'] < datetime.now() - timedelta(seconds=60)):
+                    if timeopen == 0:
+                        return 0.00
+                    elif timeclosed == 0:
+                        return 100.00
+                    else:
+                        return round(100*timeopen/timeclosed,2)
+
+                if (thisline):
+                    lastline = thisline
+
+    return 0
 
 def main():
     if 'config' in sys.argv:
@@ -52,29 +115,15 @@ def main():
         print 'graph_args --lower-limit 0 --base 1000'
         print 'graph_vlabel Level'
         print 'graph_category sensors'
-        print 'graph_info Squelch state and level at trigger time'
+        print 'graph_info Percentage of Squelch open in last minute.'
         print 'graph_period minute'
-        print 'state.label Squelch OPEN'
+        print 'state.label Squelch OPEN %'
         print 'state.type GAUGE'
         print 'state.draw AREA'
-        print 'state.colour COLOUR16'
-        print 'level.label Squelch level'
-        print 'level.type GAUGE'
-        print 'level.draw LINE'
-        print 'level.colour COLOUR7'
+        print 'state.colour COLOUR3'
 
-    line = trace_back(logfile, 'The squelch is ')
-    if not line:
-        exit(0)
-
-    if "OPEN" in line:
-        state = 1
-    else:
-        state = 0
-    print "state.value {}".format(state)
-
-    level = line.split("(")[1].split(")")[0]  # alternative is regexp, but this is more flexible
-    print "level.value {}".format(level)
+    openpercentage = squelch_open(logfile, 50)
+    print "state.value {}".format(openpercentage)
 
 if __name__ == "__main__":
     main()
