@@ -1,97 +1,49 @@
+#!/usr/bin/env python
+#
+#
+import requests
+import xml.etree.ElementTree as ET
 
-# Get frizbox data
-# Turn on upnp on the fritzbox.
-# (work on this to make it work :-) 
+fritzbox_ip='10.0.0.1'
 
-# ----------------------------------------------------------------------- Get current traffic data:
-traffic=$(curl -s "http://10.0.0.1:49000/igdupnp/control/WANCommonIFC1" \
-  -H "Content-Type: text/xml; charset="utf-8"" \
-  -H "SoapAction:urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1#GetAddonInfos" \
-  -d "<?xml version='1.0' encoding='utf-8'?> <s:Envelope s:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/' xmlns:s='http://schemas.xmlsoap.org/soap/envelope/'> <s:Body> <u:GetAddonInfos xmlns:u='urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1' /> </s:Body> </s:Envelope>")
+def printDataRate(ip):
+  url = "http://%s:49000/igdupnp/control/WANCommonIFC1" % ip
+  body = "<?xml version='1.0' encoding='utf-8'?> <s:Envelope s:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/' xmlns:s='http://schemas.xmlsoap.org/soap/envelope/'> <s:Body> <u:GetAddonInfos xmlns:u='urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1' /> </s:Body> </s:Envelope>"
+  headers = { 
+    "Content-Type": "text/xml; charset=\"utf-8\"",
+    "SoapAction"  : "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1#GetAddonInfos",
+  }
 
+  response = requests.post(url, data=body, headers=headers)
+  if response.status_code == 200:
+    responseXML = response.text
+    myroot = ET.fromstring(responseXML)
+    element = myroot[0].find('{urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1}GetAddonInfosResponse')
+    print("ByteSendRate.value %s"       % element.find('NewByteSendRate').text)
+    print("ByteReceiveRate.value %s"    % element.find('NewByteReceiveRate').text)
+    print("TotalBytesSent.value %s"     % element.find('NewTotalBytesSent').text)
+    print("TotalBytesReceived.value %s" % element.find('NewTotalBytesReceived').text)
+  else:
+    print('ERROR %d',response.status_code)
 
-# echo $traffic 
-# echo
-# echo $one
+def printBandwith(ip):
+  url = "http://%s:49000/igdupnp/control/WANCommonIFC1" % ip
+  body = "<?xml version='1.0' encoding='utf-8'?> <s:Envelope s:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/' xmlns:s='http://schemas.xmlsoap.org/soap/envelope/'> <s:Body> <u:GetCommonLinkProperties xmlns:u='urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1' /> </s:Body> </s:Envelope>"
+  headers = { 
+    "Content-Type": "text/xml; charset=\"utf-8\"",
+    "SoapAction"  : "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1#GetCommonLinkProperties",
+  }
 
-one=${traffic#*<NewByteSendRate>}
-two=${one%</NewByteSendRate>*}
-echo ByteSendRate.value $two
-
-one=${traffic#*<NewByteReceiveRate>}
-two=${one%</NewByteReceiveRate>*}
-echo ByteReceiveRate.value $two
-
-one=${traffic#*<NewTotalBytesSent>}
-two=${one%</NewTotalBytesSent>*}
-echo TotalBytesSent.value $two
-
-one=${traffic#*<NewTotalBytesReceived>}
-two=${one%</NewTotalBytesReceived>*}
-echo TotalBytesReceived.value $two
-
-exit
-
-# Returns:
-<?xml version="1.0" encoding="utf-8"?>
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-<s:Body>
-<u:GetAddonInfosResponse xmlns:u="urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1">
-<NewByteSendRate>3313</NewByteSendRate>
-<NewByteReceiveRate>1890</NewByteReceiveRate>
-<NewPacketSendRate>22</NewPacketSendRate>
-<NewPacketReceiveRate>3</NewPacketReceiveRate>
-<NewTotalBytesSent>1448385369</NewTotalBytesSent>
-<NewTotalBytesReceived>240166677</NewTotalBytesReceived>
-<NewAutoDisconnectTime>0</NewAutoDisconnectTime>
-<NewIdleDisconnectTime>0</NewIdleDisconnectTime>
-<NewDNSServer1>194.109.6.66</NewDNSServer1>
-<NewDNSServer2>194.109.6.66</NewDNSServer2>
-<NewVoipDNSServer1>0.0.0.0</NewVoipDNSServer1>
-<NewVoipDNSServer2>0.0.0.0</NewVoipDNSServer2>
-<NewUpnpControlEnabled>0</NewUpnpControlEnabled>
-<NewRoutedBridgedModeBoth>0</NewRoutedBridgedModeBoth>
-</u:GetAddonInfosResponse>
-</s:Body>
-</s:Envelope>
+  response = requests.post(url, data=body, headers=headers)
+  if response.status_code == 200:
+    responseXML = response.text
+    myroot = ET.fromstring(responseXML)
+    element = myroot[0].find('{urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1}GetCommonLinkPropertiesResponse')
+    print("UpstreamMaxBitRate.value %s"   % element.find('NewLayer1UpstreamMaxBitRate').text)
+    print("DownstreamMaxBitRate.value %s" % element.find('NewLayer1DownstreamMaxBitRate').text)
+  else:
+    print('ERROR %d',response.status_code)
 
 
-# ----------------------------------------------------------------------- Get current bitrates:
-curl "http://10.0.0.1:49000/igdupnp/control/WANCommonIFC1" \
-  -H "Content-Type: text/xml; charset="utf-8"" \
-  -H "SoapAction:urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1#GetCommonLinkProperties" \
-  -d "<?xml version='1.0' encoding='utf-8'?> <s:Envelope s:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/' xmlns:s='http://schemas.xmlsoap.org/soap/envelope/'> <s:Body> <u:GetCommonLinkProperties xmlns:u='urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1' /> </s:Body> </s:Envelope>"
-
-# Returns:
-<?xml version="1.0" encoding="utf-8"?>
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-<s:Body>
-<u:GetCommonLinkPropertiesResponse xmlns:u="urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1">
-<NewWANAccessType>DSL</NewWANAccessType>
-<NewLayer1UpstreamMaxBitRate>15895000</NewLayer1UpstreamMaxBitRate>
-<NewLayer1DownstreamMaxBitRate>54711000</NewLayer1DownstreamMaxBitRate>
-<NewPhysicalLinkStatus>Up</NewPhysicalLinkStatus>
-</u:GetCommonLinkPropertiesResponse>
-</s:Body>
-</s:Envelope>
-
-
-
-
-# ----------------------------------------------------------------------- Get External IP address:
-curl "http://10.0.01:49000/igdupnp/control/WANIPConn1" \
-  -H "Content-Type: text/xml; charset="utf-8"" \
-  -H "SoapAction:urn:schemas-upnp-org:service:WANIPConnection:1#GetExternalIPAddress" \
-  -d "<?xml version='1.0' encoding='utf-8'?> <s:Envelope s:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/' xmlns:s='http://schemas.xmlsoap.org/soap/envelope/'> <s:Body> <u:GetExternalIPAddress xmlns:u='urn:schemas-upnp-org:service:WANIPConnection:1' /> </s:Body> </s:Envelope>"
-
-# Returns:
-<?xml version="1.0" encoding="utf-8"?>
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-<s:Body>
-<u:GetExternalIPAddressResponse xmlns:u="urn:schemas-upnp-org:service:WANIPConnection:1">
-<NewExternalIPAddress>83.163.236.181</NewExternalIPAddress>
-</u:GetExternalIPAddressResponse>
-</s:Body>
-</s:Envelope>
-
-
+printDataRate(fritzbox_ip)
+printBandwith(fritzbox_ip)
