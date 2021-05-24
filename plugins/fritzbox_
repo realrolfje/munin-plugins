@@ -4,10 +4,33 @@
 # (work on this to make it work :-) 
 
 # ----------------------------------------------------------------------- Get current traffic data:
-curl "http://10.0.0.1:49000/igdupnp/control/WANCommonIFC1" \
+traffic=$(curl -s "http://10.0.0.1:49000/igdupnp/control/WANCommonIFC1" \
   -H "Content-Type: text/xml; charset="utf-8"" \
   -H "SoapAction:urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1#GetAddonInfos" \
-  -d "<?xml version='1.0' encoding='utf-8'?> <s:Envelope s:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/' xmlns:s='http://schemas.xmlsoap.org/soap/envelope/'> <s:Body> <u:GetAddonInfos xmlns:u='urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1' /> </s:Body> </s:Envelope>"
+  -d "<?xml version='1.0' encoding='utf-8'?> <s:Envelope s:encodingStyle='http://schemas.xmlsoap.org/soap/encoding/' xmlns:s='http://schemas.xmlsoap.org/soap/envelope/'> <s:Body> <u:GetAddonInfos xmlns:u='urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1' /> </s:Body> </s:Envelope>")
+
+
+# echo $traffic 
+# echo
+# echo $one
+
+one=${traffic#*<NewByteSendRate>}
+two=${one%</NewByteSendRate>*}
+echo ByteSendRate.value $two
+
+one=${traffic#*<NewByteReceiveRate>}
+two=${one%</NewByteReceiveRate>*}
+echo ByteReceiveRate.value $two
+
+one=${traffic#*<NewTotalBytesSent>}
+two=${one%</NewTotalBytesSent>*}
+echo TotalBytesSent.value $two
+
+one=${traffic#*<NewTotalBytesReceived>}
+two=${one%</NewTotalBytesReceived>*}
+echo TotalBytesReceived.value $two
+
+exit
 
 # Returns:
 <?xml version="1.0" encoding="utf-8"?>
