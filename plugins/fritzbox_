@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 #
+import sys
 import requests
 import xml.etree.ElementTree as ET
 
@@ -44,6 +45,47 @@ def printBandwith(ip):
   else:
     print('ERROR %d',response.status_code)
 
+def main():
+    if 'config' in sys.argv:
+        print("graph_title Fritzbox Data Rates")
+        print("graph_args --base 1000 -l 0")
+        print("graph_vlabel bits/s")
+        print("graph_scale no")
+        print("graph_category sensors")
+        print("graph_period hour")
 
-printDataRate(fritzbox_ip)
-printBandwith(fritzbox_ip)
+        print("ByteSendRate.label Send rate (bytes)")
+        print("ByteSendRate.type GAUGE")
+        print("ByteSendRate.draw LINE")
+        print("ByteSendRate.min 0")
+
+        print("ByteReceiveRate.label Receive rate (bytes)")
+        print("ByteReceiveRate.type GAUGE")
+        print("ByteReceiveRate.draw LINE")
+        print("ByteReceiveRate.min 0")
+
+        print("TotalBytesSent.label Bytes sent")
+        print("TotalBytesSent.type DERIVE")
+        print("TotalBytesSent.draw LINE")
+        print("TotalBytesSent.min 0")
+
+        print("TotalBytesReceived.label Bytes received")
+        print("TotalBytesReceived.type DERIVE")
+        print("TotalBytesReceived.draw LINE")
+        print("TotalBytesReceived.min 0")
+
+        print("UpstreamMaxBitRate.label Upstream bandwith (bits)")
+        print("UpstreamMaxBitRate.type GAUGE")
+        print("UpstreamMaxBitRate.draw LINE")
+        print("UpstreamMaxBitRate.min 0")
+
+        print("DownstreamMaxBitRate.label Downstream bandwith (bits)")
+        print("DownstreamMaxBitRate.type GAUGE")
+        print("DownstreamMaxBitRate.draw LINE")
+        print("DownstreamMaxBitRate.min 0")
+
+    printDataRate(fritzbox_ip)
+    printBandwith(fritzbox_ip)
+
+if __name__ == "__main__":
+    main()
