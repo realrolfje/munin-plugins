@@ -4,29 +4,37 @@
 # the AM550 Smart Energy meter.
 #
 import sys
-import time
 import serial
+import datetime
+
+logfile = '/var/log/smartmeter_totals.log'
+
+def logdata(fields):
+    current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    line = current_datetime + ';' + (';'.join(fields)) + '\n'
+    with open(logfile, 'a') as file:
+        file.write(line)
+
 
 def readserial():
-    ser = serial.Serial(
+    with serial.Serial(
         port='/dev/ttyAMA0',
         baudrate = 115200,
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
         bytesize=serial.EIGHTBITS,
         timeout=1
-    )
-
-    readings={}
-    while len(readings) < 3:
-        x = ser.readline()
-        if x[0:7] == "1-0:1.7":
-            readings["huidig"] = float(x[10:16])*1000
-        if x[0:9] == "1-0:1.8.1":
-            readings["T1"] = float(x[10:19])*1000
-        if x[0:9] == "1-0:1.8.2":
-            readings["T2"] = float(x[10:19])*1000
-    return readings
+    ) as ser:
+        readings={}
+        while len(readings) < 3:
+            x = ser.readline()
+            if x[0:7] == "1-0:1.7":
+                readings["huidig"] = float(x[10:16])*1000
+            if x[0:9] == "1-0:1.8.1":
+                readings["T1"] = float(x[10:19])*1000
+            if x[0:9] == "1-0:1.8.2":
+                readings["T2"] = float(x[10:19])*1000
+        return readings
 
 def main():
     if 'config' in sys.argv:
@@ -46,9 +54,15 @@ def main():
         print "t2.draw STACK"
         print "t2.min 0"
 
+
     readings = readserial()
-    print "t1.value", int(round(readings["T1"]))
-    print "t2.value", int(round(readings["T2"]))
+
+    t1 = int(round(readings["T1"]))
+    t2 = int(round(readings["T2"]))
+
+    logdata([t1,t2])
+    print "t1.value", t1
+    print "t2.value", t2
 
 if __name__ == "__main__":
     main()
