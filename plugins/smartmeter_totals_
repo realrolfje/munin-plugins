@@ -17,8 +17,7 @@ def logdata(fields):
         with open(logfile, 'a') as file:
             file.write(line)
     except Exception as e:
-        sys.stderr.write(f"An error occurred: {e}\n")
-
+        sys.stderr.write("An error occurred: %s\n" % e)
 
 def readserial():
     try:
@@ -41,7 +40,7 @@ def readserial():
                     readings["T2"] = float(x[10:19])*1000
             return readings
     except Exception as e:
-        sys.stderr.write(f"An error occurred: {e}\n")
+        sys.stderr.write("An error occurred: %s\n" % e)
 
 
 def main():
