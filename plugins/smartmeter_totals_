@@ -11,7 +11,8 @@ logfile = '/var/log/smartmeter_totals.log'
 
 def logdata(fields):
     current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    line = current_datetime + ';' + (';'.join(fields)) + '\n'
+    strfields=[str(item) for item in fields]
+    line = current_datetime + ';' + (';'.join(strfields)) + '\n'
     with open(logfile, 'a') as file:
         file.write(line)
 
