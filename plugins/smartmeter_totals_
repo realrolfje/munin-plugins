@@ -7,7 +7,7 @@ import sys
 import serial
 import datetime
 
-logfile = '/var/log/smartmeter_totals.log'
+logfile = '/var/log/munin/smartmeter_totals.log'
 
 def logdata(fields):
     current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
