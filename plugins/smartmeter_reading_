@@ -13,28 +13,35 @@ def logdata(fields):
     current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     strfields=[str(item) for item in fields]
     line = current_datetime + ';' + (';'.join(strfields)) + '\n'
-    with open(logfile, 'a') as file:
-        file.write(line)
+    try:
+        with open(logfile, 'a') as file:
+            file.write(line)
+    except Exception as e:
+        sys.stderr.write(f"An error occurred: {e}\n")
+
 
 def readserial():
-    with serial.Serial(
-        port='/dev/ttyAMA0',
-        baudrate = 115200,
-        parity=serial.PARITY_NONE,
-        stopbits=serial.STOPBITS_ONE,
-        bytesize=serial.EIGHTBITS,
-        timeout=1
-    ) as ser:
-        readings={}
-        while len(readings) < 3:
-            x = ser.readline()
-            if x[0:7] == "1-0:1.7":
-                readings["huidig"] = float(x[10:16])*1000
-            if x[0:9] == "1-0:1.8.1":
-                readings["T1"] = float(x[10:19])*1000
-            if x[0:9] == "1-0:1.8.2":
-                readings["T2"] = float(x[10:19])*1000
-        return readings
+    try:
+        with serial.Serial(
+            port='/dev/ttyAMA0',
+            baudrate = 115200,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS,
+            timeout=1
+        ) as ser:
+            readings={}
+            while len(readings) < 3:
+                x = ser.readline()
+                if x[0:7] == "1-0:1.7":
+                    readings["huidig"] = float(x[10:16])*1000
+                if x[0:9] == "1-0:1.8.1":
+                    readings["T1"] = float(x[10:19])*1000
+                if x[0:9] == "1-0:1.8.2":
+                    readings["T2"] = float(x[10:19])*1000
+            return readings
+    except Exception as e:
+        sys.stderr.write(f"An error occurred: {e}\n")
 
 def main():
     if 'config' in sys.argv:
